@@ -1,5 +1,3 @@
-![Uploading image.png…]()
-
 # 🧠 AI & LLM Learning Journey
 
 Bu depo, Yapay Zeka ve **Büyük Dil Modelleri (LLM)** mimarilerini derinlemesine anlamak amacıyla geliştirdiğim projeleri ve teknik notları içerir.  
