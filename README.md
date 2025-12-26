@@ -1,5 +1,6 @@
+![Uploading image.png…]()
+
 # 🧠 AI & LLM Learning Journey
-![Uploading ChatGPT Image 26 Ara 2025 15_06_29.png…]()
 
 Bu depo, Yapay Zeka ve **Büyük Dil Modelleri (LLM)** mimarilerini derinlemesine anlamak amacıyla geliştirdiğim projeleri ve teknik notları içerir.  
 Hazır API'lerin ötesine geçerek, modellerin çalışma mantığını (**backend / matematik**) seviyesinde **sıfırdan inşa etmeyi** hedefler.
