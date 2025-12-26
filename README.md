@@ -1,153 +1,70 @@
-🧠 AI & LLM Learning Journey
+# 🧠 AI & LLM Learning Journey
 
-Bu depo (repository), Yapay Zeka ve Büyük Dil Modelleri (LLM) üzerine yaptığım çalışmaları, teorik analizleri ve sıfırdan geliştirdiğim modelleri içerir.
+Bu depo, Yapay Zeka ve **Büyük Dil Modelleri (LLM)** mimarilerini derinlemesine anlamak amacıyla geliştirdiğim projeleri ve teknik notları içerir.  
+Hazır API'lerin ötesine geçerek, modellerin çalışma mantığını (**backend / matematik**) seviyesinde **sıfırdan inşa etmeyi** hedefler.
 
-Amacım, sadece hazır API'leri kullanmak değil, "kaputun altındaki" matematiği ve mimariyi (Backend) derinlemesine anlayarak özelleştirilmiş AI çözümleri üretmektir.
+---
 
-🚀 Proje 1: Baby GPT - Sıfırdan Transformer Eğitimi
+## 🚀 Proje 1: Baby GPT – Sıfırdan Transformer Eğitimi
 
-Bu projede, modern LLM'lerin (GPT-4, Gemini, Llama) temelini oluşturan Transformer mimarisini PyTorch kullanarak sıfırdan inşa ettim ve eğittim.
+Bu proje, modern dil modellerinin (**GPT-4, LLaMA, Mistral** vb.) temelini oluşturan **Transformer mimarisinin**,  
+**PyTorch kullanılarak sıfırdan kodlanmış ve eğitilmiş** bir versiyonudur.
 
-🎯 Projenin Amacı
+Hazır *Trainer* kütüphaneleri kullanılmadan;
 
-Hazır kütüphaneler (HuggingFace Trainer vb.) kullanmadan, ham PyTorch ile Self-Attention mekanizmasını kodlamak.
+- Self-Attention mekanizması  
+- Multi-Head Attention yapısı  
+- Tokenization süreci  
 
-Tokenization, Embedding ve Positional Encoding süreçlerini manuel yönetmek.
+manuel olarak inşa edilmiştir.
 
-Modeli bir diyalog veri seti ile eğiterek basit bir Chatbot haline getirmek.
+Model, diyalog verisi üzerinde eğitilerek **basit bir chatbot** fonksiyonu kazanmıştır.
 
-🛠️ Kullanılan Teknolojiler
+▶️ **Projeyi Google Colab'de İncele ve Çalıştır**  
+*(link eklenebilir)*
 
-Core: Python, PyTorch (CUDA desteği ile)
+---
 
-Tokenizer: Tiktoken (OpenAI GPT-2 BPE)
+## 🛠️ Kullanılan Teknolojiler
 
-Data: Hugging Face Datasets (knkarthick/dialogsum)
+- **Core:** Python, PyTorch (CUDA)
+- **Tokenizer:** Tiktoken (OpenAI BPE)
+- **Data:** Hugging Face – `knkarthick/dialogsum`
+- **Deployment:** Gradio
 
-Deployment: Gradio (Web Arayüzü)
+---
 
-Visualization: Torchinfo, Matplotlib
+## 📊 Model Özeti (Safe Pro Config)
 
-📚 Teorik Altyapı ve Notlar
+*T4 GPU sınırları içinde optimize edilmiş model yapılandırması*
 
-Bu projeyi geliştirirken üzerine çalıştığım temel kavramlar:
+| Parametre | Değer | Açıklama |
+|---------|------|---------|
+| **Model Tipi** | Decoder-only Transformer | GPT mimarisi |
+| **Parametre Sayısı** | ~10 Milyon | Custom boyutta eğitildi |
+| **Context Window** | 192 Token | Hafıza derinliği |
+| **Embedding Size** | 384 | Katman genişliği |
+| **Layers / Heads** | 6 Blok / 6 Kafa | Derinlik ve paralellik |
 
-1. Neden RNN değil de Transformer?
+---
 
-Eskiden kullanılan RNN ve LSTM modelleri veriyi sırayla (seri) işliyordu. Bu durum unutkanlığa (uzun cümlelerin başını unutma) ve yavaşlığa (paralel işlem yapamama) yol açıyordu. Transformerlar ise Dikkat (Attention) mekanizması sayesinde cümlenin tamamına aynı anda odaklanabilir.
+## 📉 Sonuç
 
-2. Self-Attention Mekanizması (Modelin Beyni)
+Model **5000 adım** boyunca eğitilmiş ve  
+**CrossEntropyLoss** değeri **~4.5 → ~0.5** seviyesine düşürülmüştür.
 
-Modelin kelimeler arasındaki ilişkiyi anlamasını sağlayan algoritmadır. Bunu bir veritabanı sorgusuna benzetebiliriz:
+Bu sonuç, modelin:
 
-Query (Q - Sorgu): Token ne arıyor? (Örn: "Kedi" kelimesi bir eylem arıyor)
+- İngilizce gramer yapısını  
+- Temel diyalog mantığını  
 
-Key (K - Anahtar): Diğer kelimeler ne sunuyor? (Örn: "Yemek", "Uyumak")
+başarıyla öğrendiğini göstermektedir.
 
-Value (V - Değer): Eğer eşleşme olursa ne kadar bilgi aktarılacak?
+---
 
-Örnek: "Kedi mama yer" cümlesinde; Kedi (Query) ile Yer (Key) arasındaki matematiksel uyum (Dot Product) yüksek çıkar. Böylece model, kedinin beslendiğini anlar.
+## 🗺️ Roadmap (Gelecek Hedefler)
 
-3. Mimariden Kesitler
-
-Projede kullandığım Multi-Head Attention yapısının basitleştirilmiş mantığı:
-
-class Head(nn.Module):
-    def forward(self, x):
-        # Q, K, V vektörlerini oluştur
-        k = self.key(x)
-        q = self.query(x)
-        
-        # Dikkat skorlarını hesapla (Matris Çarpımı)
-        wei = q @ k.transpose(-2, -1) * (C**-0.5)
-        
-        # Maskeleme (Geleceği görmeyi engelle - Decoder Only)
-        wei = wei.masked_fill(self.tril[:T, :T] == 0, float('-inf'))
-        wei = F.softmax(wei, dim=-1)
-        
-        # Değerleri birleştir
-        v = self.value(x)
-        return wei @ v
-
-
-📊 Model Konfigürasyonu
-
-T4 GPU sınırları dahilinde optimize edilmiş "Safe Pro" ayarları kullanılmıştır:
-
-Parametre
-
-Değer
-
-Açıklama
-
-Model Tipi
-
-Decoder-only Transformer
-
-GPT mimarisi
-
-Parametre Sayısı
-
-~10 Milyon
-
-Custom "Baby" boyutu
-
-Context Window
-
-192 Token
-
-Modelin hafıza derinliği
-
-Embedding Size
-
-384
-
-Nöron katman genişliği
-
-Layers (Derinlik)
-
-6 Blok
-
-Soyutlama seviyesi
-
-Heads
-
-6 Kafa
-
-Paralel dikkat mekanizması
-
-📉 Eğitim Sonuçları
-
-Model, DialogSum veri seti üzerinde 5000 adım boyunca eğitilmiştir.
-
-Başlangıç Loss: ~4.5
-
-Bitiş Loss: ~0.5 (Model dil yapısını ve cevap verme mantığını çözdü)
-
-(Buraya notebook'tan aldığın Loss grafiğini ekleyebilirsin)
-
-💻 Nasıl Çalıştırılır?
-
-Bu repoyu klonlayın:
-
-git clone [https://github.com/kullaniciadi/AI-Learning-Journey.git](https://github.com/kullaniciadi/AI-Learning-Journey.git)
-
-
-Gerekli kütüphaneleri kurun:
-
-pip install torch tiktoken datasets gradio torchinfo tqdm
-
-
-BabyGPT_Egitim.ipynb dosyasını Jupyter Lab veya Google Colab ile açıp çalıştırın.
-
-Roadmap (Gelecek Hedefler)
-
-[x] Sıfırdan Transformer Mimarisi (Baby GPT)
-
-[ ] Büyük bir modelin (Llama-3) Fine-Tuning işlemi
-
-[ ] RAG (Retrieval Augmented Generation) ile döküman tabanlı sohbet
-
-[ ] Vision Transformer (ViT) ile görüntü işleme
-
-Bu çalışma, AI mimarisini derinlemesine öğrenmek amacıyla oluşturulmuştur.
+- [x] Sıfırdan Transformer Mimarisi (Baby GPT)
+- [ ] Büyük bir modelin (LLaMA-3 / Mistral) **Fine-Tuning** işlemi
+- [ ] **RAG (Retrieval Augmented Generation)** ile döküman tabanlı sohbet
+- [ ] **Vision Transformer (ViT)** entegrasyonu
